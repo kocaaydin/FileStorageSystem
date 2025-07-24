@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: filestorage-console
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app
+    stdin_open: true       
+    tty: true               
+    volumes:
+      - ./src:/app/src         
+    ports:
+      - "5005:5005"            
+    command: ["dotnet", "run", "--project", "src/FileStorageSystemConsoleApp/FileStorageSystemConsoleApp.csproj"]
+
+  db:
+    container_name: filestoragesystem-db
+    image: postgres:15
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminpw
+      POSTGRES_DB: filestoragesystem
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
