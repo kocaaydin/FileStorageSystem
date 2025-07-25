@@ -6,4 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../FileStorageSystem.Core/FileStorageSystem.Core.csproj" />
+    <ProjectReference Include="../FileStorageSystem.Data/FileStorageSystem.Data.csproj" />
+    <ProjectReference Include="../FileStorageSystem.StorageProviders/FileStorageSystem.StorageProviders.csproj" />
+  </ItemGroup>
+
 </Project>
