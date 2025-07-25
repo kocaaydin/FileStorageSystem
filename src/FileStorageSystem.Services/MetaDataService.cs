@@ -12,7 +12,7 @@ public class MetaDataService(
 {
     public async Task AddChunkMetaDataAsync(ChunkMetaDataDto chunk)
     {
-        await metaDataRepository.AddChunkMetaDataAsync(chunk); 
+        await metaDataRepository.AddChunkMetaDataAsync(chunk);
     }
 
     public async Task UpdateFileMetaDataStatusAsync(Guid fileId, FileMetaDataStatus fileMetaDataStatus)
@@ -20,13 +20,13 @@ public class MetaDataService(
         await metaDataRepository.UpdateFileMetaDataStatusAsync(fileId, fileMetaDataStatus);
     }
 
+    public async Task AddFileMetaDataAsync(FileMetaDataDto fileMetadata)
+    {
+        await metaDataRepository.AddFileMetaDataAsync(fileMetadata);
+    }
+
     public async Task<FileMetaDataDto?> GetFileMetaDataWithChunksAsync(Guid fileId)
     {
         return mapper.Map<FileMetaDataDto>(await metaDataRepository.GetFileMetaDataWithChunksAsync(fileId));
-    }
-
-    public async Task AddFileMetaDataAsync(FileMetaDataDto fileMetadata)
-    {
-       await metaDataRepository.AddFileMetaDataAsync(fileMetadata);
     }
 }

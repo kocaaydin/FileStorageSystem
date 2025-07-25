@@ -10,12 +10,12 @@ using Microsoft.Extensions.DependencyInjection;
 namespace FileStorageSystem.Services;
 
 public class FileProcessService(
-        IChunkerService chunkerService,
         IMetaDataService metaDataService,
         StorageProviderFactory storageProviderFactory,
         IProviderService providerService,
         IChecksumCalculator checksumCalculator,
         IServiceProvider serviceProvider,
+        IChunkSizeCalculator chunkSizeCalculator,
         IMapper mapper) : IFileProcessService
 {
 
@@ -41,7 +41,7 @@ public class FileProcessService(
         var status = FileMetaDataStatus.InProgress;
 
         var fileMetadata = await CreateFileMetaDataAsync(filePath);
-        
+
         try
         {
             await ChunksProcessAsync(filePath, fileMetadata);
@@ -65,7 +65,7 @@ public class FileProcessService(
         //yield return kullanıldı performans açısından. veya tüm parçaları böl aynı anda yükle/kaydette yapılabilir. 
         //tamamını aynı anda yükleme ile birlikte hata veren chunklar tespit edilip farklıı sağlayıcılara yönlendirme yapılabilir.
         //Bu sayede bir sağlayıcıda hata oluştuğunda diğer sağlayıcılara yükleme işlemi devam edebilir.
-        await foreach (var chunk in chunkerService.GetChunksAsync(filePath))
+        await foreach (var chunk in GetChunksAsync(filePath))
         {
             var providerType = providerDefinitions[currentProviderIndex % providerDefinitions.Count];
             var storageProvider = storageProviderFactory.GetProvider(providerType);
@@ -122,7 +122,7 @@ public class FileProcessService(
             throw new FileNotFoundException($"File with ID {fileId} not found.");
         }
 
-        using (var mergedStream = await chunkerService.MergeFileAsync(fileMetadata))
+        using (var mergedStream = await MergeFileAsync(fileMetadata))
         {
             var mergedChecksum = await checksumCalculator.CalculateSha256Async(mergedStream);
             if (mergedChecksum != fileMetadata.OriginalChecksum)
@@ -149,7 +149,7 @@ public class FileProcessService(
                 return false;
             }
 
-            using (var mergedStream = await chunkerService.MergeFileAsync(fileMetadata))
+            using (var mergedStream = await MergeFileAsync(fileMetadata))
             {
                 var mergedChecksum = await checksumCalculator.CalculateSha256Async(mergedStream!);
                 bool isIntegrityOk = (mergedChecksum == fileMetadata.OriginalChecksum);
@@ -160,5 +160,54 @@ public class FileProcessService(
         {
             return false;
         }
+    }
+
+    private async IAsyncEnumerable<ChunkDataDto> GetChunksAsync(string filePath)
+    {
+        using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+        var buffer = new byte[chunkSizeCalculator.CalculateOptimalChunkSize(fileStream.Length)];
+        int bytesRead;
+        int chunkIndex = 0;
+
+        while ((bytesRead = await fileStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+        {
+            var chunkStream = new MemoryStream(buffer, 0, bytesRead, writable: false, publiclyVisible: true);
+
+            var chunkChecksum = await checksumCalculator.CalculateSha256Async(chunkStream);
+
+            chunkStream.Seek(0, SeekOrigin.Begin);
+
+            yield return new ChunkDataDto
+            {
+                ChunkMetaData = new()
+                {
+                    Id = Guid.NewGuid(),
+                    ChunkIndex = chunkIndex,
+                    Size = bytesRead,
+                    Checksum = chunkChecksum
+                },
+                Data = chunkStream
+            };
+
+            chunkIndex++;
+        }
+    }
+
+    private async Task<Stream> MergeFileAsync(FileMetaDataDto fileMetaData)
+    {
+        var sortedChunks = fileMetaData.Chunks.OrderBy(c => c.ChunkIndex).ToList();
+        var memoryStream = new MemoryStream();
+
+        foreach (var chunk in sortedChunks)
+        {
+            var providerType = (StorageProviderType)Enum.Parse(typeof(StorageProviderType), chunk.StorageProviderType.ToString());
+            var storageProvider = storageProviderFactory.GetProvider(providerType);
+            using var chunkStream = await storageProvider.GetChunkAsync(chunk.Id, fileMetaData.FileName);
+
+            await chunkStream.CopyToAsync(memoryStream);
+        }
+
+        memoryStream.Seek(0, SeekOrigin.Begin);
+        return memoryStream;
     }
 }
