@@ -1,4 +1,5 @@
 using AutoMapper;
+using FileStorageSystem.Core.Commands;
 using FileStorageSystem.Core.Dtos;
 using FileStorageSystem.Core.Enums;
 using FileStorageSystem.Core.Models;
@@ -12,7 +13,7 @@ public class MetaDataRepository(IRepository<AppDbContext> genericRepository, IMa
     {
         return await genericRepository.GetQueryable<FileMetaData>(
             filter: fm => fm.Id == fileId,
-            include: query => query.Include(fm => fm.Chunks),
+            include: query => query.Include(fm => fm.ChunkMetaDatas),
             asNoTracking: true
         ).FirstOrDefaultAsync();
     }
@@ -25,7 +26,7 @@ public class MetaDataRepository(IRepository<AppDbContext> genericRepository, IMa
         ).OrderBy(c => c.ChunkIndex).ToListAsync();
     }
 
-    public async Task AddChunkMetaDataAsync(ChunkMetaDataDto chunk)
+    public async Task AddChunkMetaDataAsync(CreateChunkMetaDataCommand chunk)
     {
         await genericRepository.AddAsync(mapper.Map<ChunkMetaData>(chunk));
         await genericRepository.SaveChangesAsync();
@@ -42,7 +43,7 @@ public class MetaDataRepository(IRepository<AppDbContext> genericRepository, IMa
         }
     }
 
-    public async Task AddFileMetaDataAsync(FileMetaDataDto fileMetadata)
+    public async Task AddFileMetaDataAsync(CreateFileMetaDataCommand fileMetadata)
     {
         await genericRepository.AddAsync(mapper.Map<FileMetaData>(fileMetadata));
         await genericRepository.SaveChangesAsync();

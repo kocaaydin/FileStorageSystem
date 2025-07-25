@@ -54,7 +54,6 @@ namespace FileStorageSystemConsoleApp
                     services.AddTransient<IChecksumCalculator, ChecksumCalculator>();
                     services.AddTransient<IChunkSizeCalculator, ChunkSizeCalculator>();
 
-                    services.AddTransient<IChunkerService, ChunkerService>();
                     services.AddTransient<IMetaDataService, MetaDataService>();
                     services.AddTransient<IFileProcessService, FileProcessService>();
                     services.AddTransient<IProviderService, ProviderService>();
@@ -63,28 +62,6 @@ namespace FileStorageSystemConsoleApp
                     services.AddAutoMapper(typeof(MetaDataProfile));
 
                 });
-        public static void CreateSampleFile(string filePath, int sizeInBytes)
-        {
-            var dir = Path.GetDirectoryName(filePath);
-            if (!Directory.Exists(dir))
-            {
-                Directory.CreateDirectory(dir!);
-            }
-
-            var data = new byte[1024];
-            var random = new Random();
-
-            using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write))
-            {
-                long bytesWritten = 0;
-                while (bytesWritten < sizeInBytes)
-                {
-                    random.NextBytes(data);
-                    int bytesToWrite = (int)Math.Min(data.Length, sizeInBytes - bytesWritten);
-                    fs.Write(data, 0, bytesToWrite);
-                    bytesWritten += bytesToWrite;
-                }
-            }
-        }
+       
     }
 }

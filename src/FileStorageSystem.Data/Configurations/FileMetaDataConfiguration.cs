@@ -10,7 +10,7 @@ public class FileMetaDataConfiguration: BaseEntityTypeConfiguration<FileMetaData
     {
         base.Configure(builder);
 
-        builder.HasMany(fm => fm.Chunks)
+        builder.HasMany(fm => fm.ChunkMetaDatas)
                .WithOne()
                .HasForeignKey(c => c.FileMetaDataId)
                .OnDelete(DeleteBehavior.Cascade);

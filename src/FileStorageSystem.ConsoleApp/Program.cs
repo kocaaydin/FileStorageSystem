@@ -19,22 +19,26 @@ namespace FileStorageSystemConsoleApp
                 await dbContext.Database.MigrateAsync();
             }
 
+            await FileProcessAsync(host);
+
+            Console.WriteLine("Program sonlandı. Çıkmak için bir tuşa basın...");
+
+            _ = Console.ReadLine()!;
+        }
+
+        private static async Task<bool> FileProcessAsync(Microsoft.Extensions.Hosting.IHost host)
+        {
             var fileProcessor = host.Services.GetRequiredService<IFileProcessService>();
             var options = host.Services.GetRequiredService<IOptions<StorageSettings>>();
 
-            List<string> filePaths =
-            [
-                Path.Combine(AppContext.BaseDirectory, options.Value.SampleFilesPath, "sample_file1.txt"),
-                Path.Combine(AppContext.BaseDirectory, options.Value.SampleFilesPath, "sample_file2.txt")
-            ];
+            Console.WriteLine("Yüklemek istediğiniz dosyaların adreslerini virgül ile ayırarak giriniz (örneğin: C:\\dosya1.txt,C:\\dosya2.txt):");
 
-            foreach (var filePath in filePaths)
-            {
-                if (!File.Exists(filePath))
-                {
-                    CreateSampleFile(filePath, 5 * 1024 * 1024);
-                }
-            }
+
+            List<string> filePaths = [.. Console.ReadLine()!
+                .Split(',')
+                .Select(path => path.Trim())
+                .Where(path => !string.IsNullOrEmpty(path) && File.Exists(path))];
+            
 
             await fileProcessor.UploadFilesAsync(filePaths);
 
@@ -47,25 +51,24 @@ namespace FileStorageSystemConsoleApp
             if (!Guid.TryParse(uploadedFileIdString, out uploadedFileGuid))
             {
                 Console.WriteLine("HATA: Geçersiz GUID girdiniz.");
-                return;
+                return false;
             }
 
             if (uploadedFileGuid != Guid.Empty)
             {
                 string downloadDestinationPath = Path.Combine(AppContext.BaseDirectory, options.Value.DownloadedFiles);
                 Directory.CreateDirectory(downloadDestinationPath);
-                
+
                 await fileProcessor.DownloadFileAsync(uploadedFileGuid, downloadDestinationPath);
 
-                Console.WriteLine("Dosya indirildi");   
+                Console.WriteLine("Dosya indirildi");
 
                 bool isIntegrityOk = await fileProcessor.VerifyFileIntegrityAsync(uploadedFileGuid);
 
                 Console.WriteLine($"Dosya doğrulama sonucu: {(isIntegrityOk ? "Başarılı" : "Başarısız")}");
             }
 
-            Console.WriteLine("Program sonlandı. Çıkmak için bir tuşa basın...");
-            _ = Console.ReadLine()!;
-        } 
+            return true;
+        }
     }
 }

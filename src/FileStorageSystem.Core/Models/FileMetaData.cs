@@ -9,5 +9,5 @@ public class FileMetaData: BaseModel
     public required string OriginalChecksum { get; set; }
     public DateTime UploadDate { get; set; }
     public required FileMetaDataStatus FileMetaDataStatus { get; set; }
-    public ICollection<ChunkMetaData> Chunks { get; set; } = [];
+    public ICollection<ChunkMetaData> ChunkMetaDatas { get; set; } = [];
 }

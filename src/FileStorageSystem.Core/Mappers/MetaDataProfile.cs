@@ -1,4 +1,5 @@
 using AutoMapper;
+using FileStorageSystem.Core.Commands;
 using FileStorageSystem.Core.Dtos;
 using FileStorageSystem.Core.Models;
 
@@ -8,8 +9,12 @@ public class MetaDataProfile: Profile
 {
     public MetaDataProfile()
     {
-        CreateMap<ChunkMetaData, ChunkMetaDataWithProviderDto>().ReverseMap();
-        CreateMap<FileMetaDataDto, FileMetaData>().ReverseMap();
-        CreateMap<ChunkMetaDataDto, ChunkMetaDataWithProviderDto>().ReverseMap();
+        CreateMap<ChunkMetaData, ChunkMetaDataDto>().ReverseMap();
+        CreateMap<FileMetaData, FileMetaDataDto>().ReverseMap();
+
+        CreateMap<CreateChunkMetaDataCommand, ChunkMetaData>().ReverseMap();
+        CreateMap<ChunkMetaDataDto, CreateChunkMetaDataCommand>();
+        CreateMap<CreateFileMetaDataCommand, FileMetaData>();
+        CreateMap<FileMetaDataDto, CreateFileMetaDataCommand>();
     }
 }

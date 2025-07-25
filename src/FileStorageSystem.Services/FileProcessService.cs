@@ -15,8 +15,7 @@ public class FileProcessService(
         IProviderService providerService,
         IChecksumCalculator checksumCalculator,
         IServiceProvider serviceProvider,
-        IChunkSizeCalculator chunkSizeCalculator,
-        IMapper mapper) : IFileProcessService
+        IChunkSizeCalculator chunkSizeCalculator) : IFileProcessService
 {
 
     public async Task UploadFilesAsync(List<string> filePaths)
@@ -195,12 +194,12 @@ public class FileProcessService(
 
     private async Task<Stream> MergeFileAsync(FileMetaDataDto fileMetaData)
     {
-        var sortedChunks = fileMetaData.Chunks.OrderBy(c => c.ChunkIndex).ToList();
+        var sortedChunks = fileMetaData.ChunkMetaDatas.OrderBy(c => c.ChunkIndex).ToList();
         var memoryStream = new MemoryStream();
 
         foreach (var chunk in sortedChunks)
         {
-            var providerType = (StorageProviderType)Enum.Parse(typeof(StorageProviderType), chunk.StorageProviderType.ToString());
+            var providerType = (StorageProviderType)Enum.Parse(typeof(StorageProviderType), chunk.StorageProviderType.ToString()!);
             var storageProvider = storageProviderFactory.GetProvider(providerType);
             using var chunkStream = await storageProvider.GetChunkAsync(chunk.Id, fileMetaData.FileName);
 

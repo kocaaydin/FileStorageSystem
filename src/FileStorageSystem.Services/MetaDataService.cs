@@ -1,4 +1,5 @@
 using AutoMapper;
+using FileStorageSystem.Core.Commands;
 using FileStorageSystem.Core.Dtos;
 using FileStorageSystem.Core.Enums;
 using FileStorageSystem.Core.Interfaces;
@@ -12,7 +13,7 @@ public class MetaDataService(
 {
     public async Task AddChunkMetaDataAsync(ChunkMetaDataDto chunk)
     {
-        await metaDataRepository.AddChunkMetaDataAsync(chunk);
+        await metaDataRepository.AddChunkMetaDataAsync(mapper.Map<CreateChunkMetaDataCommand>(chunk));
     }
 
     public async Task UpdateFileMetaDataStatusAsync(Guid fileId, FileMetaDataStatus fileMetaDataStatus)
@@ -22,7 +23,7 @@ public class MetaDataService(
 
     public async Task AddFileMetaDataAsync(FileMetaDataDto fileMetadata)
     {
-        await metaDataRepository.AddFileMetaDataAsync(fileMetadata);
+        await metaDataRepository.AddFileMetaDataAsync(mapper.Map<CreateFileMetaDataCommand>(fileMetadata));
     }
 
     public async Task<FileMetaDataDto?> GetFileMetaDataWithChunksAsync(Guid fileId)

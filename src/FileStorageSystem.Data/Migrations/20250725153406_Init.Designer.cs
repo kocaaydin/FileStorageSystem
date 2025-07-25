@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FileStorageSystem.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250725114931_Init")]
+    [Migration("20250725153406_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -101,7 +101,7 @@ namespace FileStorageSystem.Data.Migrations
             modelBuilder.Entity("FileStorageSystem.Core.Models.ChunkMetaData", b =>
                 {
                     b.HasOne("FileStorageSystem.Core.Models.FileMetaData", null)
-                        .WithMany("Chunks")
+                        .WithMany("ChunkMetaDatas")
                         .HasForeignKey("FileMetaDataId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -109,7 +109,7 @@ namespace FileStorageSystem.Data.Migrations
 
             modelBuilder.Entity("FileStorageSystem.Core.Models.FileMetaData", b =>
                 {
-                    b.Navigation("Chunks");
+                    b.Navigation("ChunkMetaDatas");
                 });
 #pragma warning restore 612, 618
         }

@@ -98,7 +98,7 @@ namespace FileStorageSystem.Data.Migrations
             modelBuilder.Entity("FileStorageSystem.Core.Models.ChunkMetaData", b =>
                 {
                     b.HasOne("FileStorageSystem.Core.Models.FileMetaData", null)
-                        .WithMany("Chunks")
+                        .WithMany("ChunkMetaDatas")
                         .HasForeignKey("FileMetaDataId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -106,7 +106,7 @@ namespace FileStorageSystem.Data.Migrations
 
             modelBuilder.Entity("FileStorageSystem.Core.Models.FileMetaData", b =>
                 {
-                    b.Navigation("Chunks");
+                    b.Navigation("ChunkMetaDatas");
                 });
 #pragma warning restore 612, 618
         }
