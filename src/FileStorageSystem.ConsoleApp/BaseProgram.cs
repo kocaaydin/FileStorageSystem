@@ -38,17 +38,18 @@ namespace FileStorageSystemConsoleApp
                         loggingBuilder.ClearProviders().AddSerilog(null, dispose: true);
                     });
 
-                    var storageSettingsSection = hostContext.Configuration.GetSection("StorageSettings");
-                    services.Configure<StorageSettings>(storageSettingsSection);
+                    services.Configure<StorageSettings>(hostContext.Configuration.GetSection("StorageSettings"));
 
-                    if (!Directory.Exists(storageSettingsSection["FileSystemStoragePath"]))
-                    {
-                        Directory.CreateDirectory(storageSettingsSection["FileSystemStoragePath"]!);
-                    }
 
                     services.AddEfDbContext<AppDbContext>(options =>
                     {
-                        options.UseNpgsql(hostContext.Configuration.GetConnectionString("DefaultConnection"));
+                        string connectionString = hostContext.Configuration.GetConnectionString("DefaultConnection")!;
+                        if (hostContext.HostingEnvironment.EnvironmentName == "Docker")
+                        {
+                            connectionString = connectionString.Replace("localhost", "db");
+                        }
+                        
+                        options.UseNpgsql(connectionString);
                     });
 
                     services.AddTransient<IMetaDataRepository, MetaDataRepository>();
@@ -63,6 +64,6 @@ namespace FileStorageSystemConsoleApp
                     services.AddAutoMapper(typeof(MetaDataProfile));
 
                 });
-       
+
     }
 }

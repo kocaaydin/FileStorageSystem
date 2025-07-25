@@ -8,9 +8,11 @@ services:
       dockerfile: Dockerfile
     working_dir: /app
     stdin_open: true       
-    tty: true               
+    tty: true
+    environment:
+      DOTNET_ENVIRONMENT: "Docker"                       
     volumes:
-      - ./src:/app/src         
+      - ./chunksroot:/app/chunksroot   
     ports:
       - "5005:5005"            
     command: ["dotnet", "run", "--project", "src/FileStorageSystemConsoleApp/FileStorageSystemConsoleApp.csproj"]

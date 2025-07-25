@@ -12,7 +12,7 @@ public class FileSystemStorageProvider(IOptions<StorageSettings> storageSettings
 
     public async Task SaveChunkAsync(Guid chunkId, Stream chunkData, string originalFileName)
     {
-        var filePath = Path.Combine(storageSettings.Value.FileSystemStoragePath, $"{originalFileName}_{chunkId}.chunk");
+        var filePath = Path.Combine(storageSettings.Value.ChunksPath, $"{originalFileName}_{chunkId}.chunk");
 
         using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
         {
@@ -23,7 +23,7 @@ public class FileSystemStorageProvider(IOptions<StorageSettings> storageSettings
 
     public async Task<Stream> GetChunkAsync(Guid chunkId, string originalFileName)
     {
-        var filePath = Path.Combine(storageSettings.Value.FileSystemStoragePath, $"{originalFileName}_{chunkId}.chunk");
+        var filePath = Path.Combine(storageSettings.Value.ChunksPath, $"{originalFileName}_{chunkId}.chunk");
 
         if (!File.Exists(filePath))
         {
