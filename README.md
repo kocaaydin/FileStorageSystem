@@ -40,5 +40,12 @@
 
 <img width="2420" height="1166" alt="image" src="https://github.com/user-attachments/assets/d29f4878-935e-4d3e-97d2-19fd820fdeba" />
 
-#### 2. Dosya yükleme işlemi:
+#### 2. Dosya yükleme ve indirme işlemi:
+
+<img width="2126" height="542" alt="image" src="https://github.com/user-attachments/assets/1386c38d-6b9e-49b2-895c-7bb69096412f" />
+
+<img width="300" height="574" alt="image" src="https://github.com/user-attachments/assets/d58ad735-983d-47ba-ada1-19c15cb45f07" />
+
+
+
 
