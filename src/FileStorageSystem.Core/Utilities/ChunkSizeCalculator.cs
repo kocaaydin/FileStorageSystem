@@ -6,7 +6,7 @@ public class ChunkSizeCalculator : IChunkSizeCalculator
 {
     public int CalculateOptimalChunkSize(long fileSizeInBytes)
     {
-        const int minChunkSize = 512 * 1024;
+        const int minChunkSize = 20 * 1024;
         const int maxChunkSize = 8 * 1024 * 1024;
 
         const int targetChunkCount = 16;
