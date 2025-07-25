@@ -1,4 +1,3 @@
-using AutoMapper;
 using FileStorageSystem.Core.Dtos;
 using FileStorageSystem.Core.Enums;
 using FileStorageSystem.Core.Exceptions;
@@ -6,6 +5,7 @@ using FileStorageSystem.Core.Helpers;
 using FileStorageSystem.Core.Interfaces;
 using FileStorageSystem.StorageProviders;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace FileStorageSystem.Services;
 
@@ -15,15 +15,19 @@ public class FileProcessService(
         IProviderService providerService,
         IChecksumCalculator checksumCalculator,
         IServiceProvider serviceProvider,
-        IChunkSizeCalculator chunkSizeCalculator) : IFileProcessService
+        IChunkSizeCalculator chunkSizeCalculator,
+        ILogger<FileProcessService> logger) : IFileProcessService
 {
 
     public async Task UploadFilesAsync(List<string> filePaths)
     {
         if (!(filePaths?.Count > 0))
         {
+            logger.LogWarning("Yükleme işlemi başlatılamadı: Dosya listesi boş.");
             throw new ArgumentException("File paths cannot be null or empty.", nameof(filePaths));
         }
+
+        logger.LogInformation("Toplu dosya yükleme başlıyor: ToplamDosyaSayısı={Count}", filePaths.Count);
 
         await Task.WhenAll(filePaths.Select(async path =>
         {
@@ -35,6 +39,7 @@ public class FileProcessService(
 
     public async Task UploadFileAsync(string filePath)
     {
+        logger.LogInformation("Dosya yükleme başladı: {FilePath}", filePath);
         // Detaylandırılmak istenilirse yarım kalan dosya yükleme işlemi kaldığı yerden devam etsin algoritması
         // eklenebilir.
         var status = FileMetaDataStatus.InProgress;
@@ -45,10 +50,12 @@ public class FileProcessService(
         {
             await ChunksProcessAsync(filePath, fileMetadata);
             status = FileMetaDataStatus.Completed;
+            logger.LogInformation("Dosya yükleme tamamlandı: {FileId}", fileMetadata.Id);
         }
         catch
         {
             status = FileMetaDataStatus.Failed;
+            logger.LogInformation("Dosya yükleme tamamlandı: {FileId}", fileMetadata.Id);
             throw;
         }
         finally
@@ -59,6 +66,8 @@ public class FileProcessService(
 
     private async Task ChunksProcessAsync(string filePath, FileMetaDataDto fileMetadata)
     {
+        logger.LogInformation("Dosya parçalama ve yükleme işlemi başladı: FileId={FileId}", fileMetadata.Id);
+
         int currentProviderIndex = 0;
         var providerDefinitions = providerService.GetAvailableProviders();
         //yield return kullanıldı performans açısından. veya tüm parçaları böl aynı anda yükle/kaydette yapılabilir. 
@@ -68,6 +77,9 @@ public class FileProcessService(
         {
             var providerType = providerDefinitions[currentProviderIndex % providerDefinitions.Count];
             var storageProvider = storageProviderFactory.GetProvider(providerType);
+
+            logger.LogDebug("Chunk yükleniyor: ChunkIndex={ChunkIndex}, Provider={Provider}",
+                chunk.ChunkMetaData.ChunkIndex, providerType);
 
             //Buraya hata durumunda bir sonraki sağlayıcıya geçme mantığı eklenebilir.
             //Bir sonraki sağlayıcıya eklenip chunkmetadatası ona göre kaydedilir.
@@ -114,10 +126,14 @@ public class FileProcessService(
 
     public async Task DownloadFileAsync(Guid fileId, string destinationPath)
     {
+        logger.LogInformation("Dosya indirme başladı: FileId={FileId}", fileId);
+
         var fileMetadata = await metaDataService.GetFileMetaDataWithChunksAsync(fileId);
 
         if (fileMetadata == null)
         {
+            logger.LogWarning("Dosya bulunamadı: FileId={FileId}", fileId);
+
             throw new FileNotFoundException($"File with ID {fileId} not found.");
         }
 
@@ -126,6 +142,7 @@ public class FileProcessService(
             var mergedChecksum = await checksumCalculator.CalculateSha256Async(mergedStream);
             if (mergedChecksum != fileMetadata.OriginalChecksum)
             {
+                logger.LogError("Dosya doğrulama hatası: FileId={FileId}", fileId);
                 throw new FileValidationException($"Dosya doğrulama işleminde hata oluştu. FileId: {fileId}.");
             }
             mergedStream.Seek(0, SeekOrigin.Begin);
@@ -135,6 +152,8 @@ public class FileProcessService(
             {
                 await mergedStream.CopyToAsync(outputFileStream);
             }
+
+            logger.LogInformation("Dosya başarıyla indirildi: FileId={FileId}, Path={Path}", fileId, outputFilePath);
         }
     }
 

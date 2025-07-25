@@ -28,8 +28,9 @@ namespace FileStorageSystemConsoleApp
                 {
                     Log.Logger = new LoggerConfiguration()
                                 .MinimumLevel.Information()
+                                .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Warning)
                                 .WriteTo.Console()
-                                .WriteTo.File("logs/app_log.txt", rollingInterval: RollingInterval.Day)
+                                .WriteTo.File(hostContext.Configuration["StorageSettings:LogPath"]!.ToString(), rollingInterval: RollingInterval.Day)
                                 .CreateLogger();
 
                     services.AddLogging(delegate (ILoggingBuilder loggingBuilder)
