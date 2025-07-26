@@ -6,7 +6,7 @@ namespace FileStorageSystem.StorageProviders;
 
 public class StorageProviderFactory(IServiceProvider serviceProvider)
 {
-    public IStorageProvider GetProvider(StorageProviderType providerType)
+    public virtual IStorageProvider GetProvider(StorageProviderType providerType)
     {
         return providerType switch
         {

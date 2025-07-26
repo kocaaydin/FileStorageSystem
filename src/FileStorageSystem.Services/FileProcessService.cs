@@ -167,16 +167,14 @@ public class FileProcessService(
                 return false;
             }
 
-            using (var mergedStream = await MergeFileAsync(fileMetadata))
-            {
-                var mergedChecksum = await checksumCalculator.CalculateSha256Async(mergedStream!);
-                bool isIntegrityOk = (mergedChecksum == fileMetadata.OriginalChecksum);
-                return isIntegrityOk;
-            }
+            using var mergedStream = await MergeFileAsync(fileMetadata);
+            var mergedChecksum = await checksumCalculator.CalculateSha256Async(mergedStream!);
+            bool isIntegrityOk = (mergedChecksum == fileMetadata.OriginalChecksum);
+            return isIntegrityOk;
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
-            return false;
+            throw new FileValidationException(ex.Message, ex);
         }
     }
 
